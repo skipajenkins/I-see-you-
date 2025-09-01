@@ -1,63 +1,75 @@
-# ⚡ Real‑Time Appliance Monitoring App
+# ⚡ I-See-You: Real-Time Appliance Load Monitoring
 
-A Flutter mobile application for **real‑time energy usage monitoring** of appliances, powered by Firebase Realtime Database and on‑device TensorFlow Lite inference. Designed for instant feedback, sliding‑window AI analysis, and scalable integration with industrial and consumer devices.
+A **Flutter mobile application** for monitoring appliance energy usage in real time.  
+Powered by **Firebase Realtime Database** for live data, and **TensorFlow Lite** for fast, on-device AI inference.  
+Designed to deliver **instant feedback**, **sliding-window AI analysis**, and **scalable monitoring** for home and industrial appliances. 📱⚡  
 
 ---
 
 ## 🌟 Features
 
-### 📡 Real‑Time Data Streaming
-- **Live Firebase Listeners**: Streams the latest readings from `/raw_data` without replaying the entire history.
-- **Sliding‑Window Processing**: Maintains a fixed‑size buffer (599 readings) per device for model input.
-- **Zero‑Padding**: Starts inference immediately by padding empty slots until the window is full.
+### 📡 Real-Time Monitoring
+- **Live Firebase Listeners** → Stream the latest readings from `/raw_data` without replaying history  
+- **Sliding-Window Buffer** → Maintains 599 readings per device for AI input  
+- **Zero-Padding Startup** → Begin inference immediately by padding until buffer is full  
 
-### 🤖 AI‑Powered Inference
-- **Per‑Device Models**: Each appliance uses its own `.tflite` model from app assets.
-- **Model Readiness Check**: Optional handshake via `ai_input/models/{modelKey}/status` in Firebase before loading.
-- **On‑Device TensorFlow Lite**: Runs inference locally for instant results without cloud latency.
-- **Latest‑Only Cache**: Displays the most recent inference result, then clears it until the next update.
+### 🤖 AI-Powered Inference
+- **Per-Device Models** → Each appliance uses its own `.tflite` model shipped with the app  
+- **On-Device Execution** → TensorFlow Lite ensures results without cloud latency  
+- **Model Readiness Check** → Optional handshake via `ai_input/models/{modelKey}/status`  
+- **Latest-Only Cache** → Only the most recent inference result is displayed before clearing  
 
 ### 🖥️ Device Management
-- **Add/Remove Appliances**: Persisted in `/users/{uid}/devices` in Firebase.
-- **Live Analysis Toggle**: Starts/stops streaming and inference per device.
-- **Automatic Model Loading/Unloading**: Loads on toggle ON, unloads on toggle OFF or removal.
+- Add/remove appliances → Synced under `/users/{uid}/devices` in Firebase  
+- Toggle live analysis per device → Auto-loads model on **ON**, unloads on **OFF**  
+- Seamless lifecycle → Models attach/detach listeners automatically  
 
-### 📊 Aggregation & Reporting
-- **Daily Totals**: Aggregates inference results into `usagePerDay` for each device.
-- **Future‑Ready Reporting**: Architecture supports pushing each inference result to Firebase for historical analytics.
+### 📊 Usage & Reporting
+- **Daily Totals** → Summarized usage stored under `usagePerDay`  
+- **Future Analytics Ready** → Architecture supports pushing every inference to Firebase for trend reports  
+
+---
+
+## 🛠️ Tech Stack
+
+| Component            | Purpose                                  |
+|----------------------|------------------------------------------|
+| **Flutter & Dart**   | Cross-platform mobile UI (Android & iOS) |
+| **Firebase RTDB**    | Real-time data syncing                   |
+| **TensorFlow Lite**  | On-device inference per appliance        |
+| **Provider**         | State management in Flutter              |
 
 ---
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Flutter SDK (3.x recommended)
-- Dart SDK (3.x)
-- Firebase project with:
-  - Realtime Database enabled
-  - Authentication enabled (Email/Password or other)
-- Android Studio or Xcode for device/simulator testing
+- Flutter SDK (3.x)  
+- Dart SDK (3.x)  
+- Firebase project with:  
+  - Realtime Database enabled  
+  - Authentication enabled (Email/Password or equivalent)  
+- Android Studio or Xcode for running on device/simulator  
 
 ### Installation
 Clone the repository:
 ```bash
-git clone https://github.com/your-org/real-time-appliance-monitoring.git
-cd real-time-appliance-monitoring
-Install dependencies:
-
-bash
+git clone https://github.com/I-S-U-Load-Monitoring-Application/I-see-you-.git
+cd I-see-you-
 flutter pub get
 Configure Firebase:
 
-Add your google-services.json (Android) and/or GoogleService-Info.plist (iOS) to the project.
+Add google-services.json (Android) and/or GoogleService-Info.plist (iOS)
 
-Update firebase_options.dart if using FlutterFire CLI.
+If needed, run FlutterFire CLI to regenerate firebase_options.dart
+```
 
-🔧 Configuration
+### 🔧 Configuration
 Firebase Database Rules
 Recommended secure rules:
-
+```bash 
 json
+Copy code
 {
   "rules": {
     "users": {
@@ -80,10 +92,13 @@ json
     }
   }
 }
-Model Readiness Flags
-If using readiness checks, create in RTDB:
+```
 
+### Model Readiness Flags
+If using readiness checks:
+``` bash
 json
+Copy code
 "ai_input": {
   "models": {
     "Fridge_tflite": { "status": "ready" },
@@ -92,81 +107,86 @@ json
     "Kettle_tflite": { "status": "ready" }
   }
 }
-Keys must be Firebase‑safe (no ., $, #, [, ], /).
+```
+Keys must be Firebase-safe (no ., $, #, [, ], /).
 
+---
 
-🔌 Data Flow
-Add Device → Writes to /users/{uid}/devices → UI updates via .onValue listener.
+## 🔌 Data Flow
+- Add Device → Writes to /users/{uid}/devices
 
-Toggle Live Analysis ON:
+- Toggle ON → Loads model, attaches listener to /raw_data
 
-Loads model from assets (if ready).
+- Run Inference → Sliding window updates → TFLite processes → Result cached → UI updates
 
-Attaches .limitToLast(599) listener to /raw_data.
+- Toggle OFF / Remove Device → Cancels listener, unloads model
 
-Seeds zero‑padded window, slides in new readings.
+---
 
-Runs inference on each update, updates usageCache.
+## 📋 Requirements
+### Dependencies:
 
-UI Displays Result → Clears cache → Waits for next update.
+- firebase_core
 
-Toggle OFF / Remove Device → Cancels listener, unloads model.
+- firebase_auth
 
-🛠️ Development
-Available Scripts
-bash
-flutter run        # Run on connected device/emulator
+- firebase_database
+
+- provider
+
+- tflite_flutter
+
+### Supported Platforms:
+✅ Android | ✅ iOS
+
+---
+
+## 🛠️ Development
+### Scripts
+```bash
+Copy code
+flutter run        # Run on device/emulator
 flutter build apk  # Build Android APK
 flutter build ios  # Build iOS app
-Code Style
-Follows Dart/Flutter best practices.
+```
 
-Provider for state management.
+### Code Style
+- Follows Dart/Flutter best practices
 
-Clear separation of UI, service, and model logic.
+- Uses Provider for state management
 
-📋 Requirements
-Dependencies:
+- Separation of UI, services, and model logic
 
-firebase_core
+---
 
-firebase_auth
+## 🆘 Troubleshooting
+- Model not ready → Ensure status: "ready" exists in Firebase
 
-firebase_database
+- No data streaming → Check Firebase rules and /raw_data updates
 
-provider
+- Output is 0 → Window still padded; wait for 599 real readings
 
-tflite_flutter
+- Performance issues → Verify .limitToLast(599) is applied and listeners detached properly
 
-Supported Platforms: ✅ Android ✅ iOS
+---
 
-🆘 Troubleshooting
-Model not ready: Ensure status: "ready" exists in RTDB under ai_input/models/{modelKey}.
+## 🤝 Contributing
+We welcome contributions!
 
-No data streaming: Check Firebase rules and that /raw_data is receiving updates.
+- Fork the repo
 
-Output is 0: This can happen if the sliding window is still mostly zero‑padded. Once 599 real readings arrive, the model will produce meaningful results.
+- Create a feature branch:
 
-OOM / slow startup: Verify .limitToLast(599) is in place and listeners are cancelled when not needed.
-
-🤝 Contributing
-Fork the repository.
-
-Create a feature branch:
-
-bash
+``` bash
 git checkout -b feature/amazing-feature
-Commit changes:
+```
+- Commit your changes
 
-bash
-git commit -m 'Add amazing feature'
-Push to branch:
+- Push and open a Pull Request
 
-bash
-git push origin feature/amazing-feature
-Open a Pull Request.
+---
 
-🙏 Acknowledgments
-Built with Flutter & Firebase
+## 📄 License
+Distributed under the MIT License. See LICENSE for details.
 
-TensorFlow Lite for on‑device inference
+Made with ❤️ by I-S-U-Load-Monitoring-Application
